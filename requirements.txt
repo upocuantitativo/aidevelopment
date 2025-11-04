@@ -1,31 +1,10 @@
-# AI for Development - Advanced ML Analysis
-# Dual-target recursive optimization with quantum computing
-
-# Core data science
+# Gender & Development Analysis - Dual Target
 pandas>=1.5.0
 numpy>=1.23.0
-scipy>=1.9.0
-
-# Machine learning
 scikit-learn>=1.2.0
 xgboost>=1.7.0
-
-# Deep learning
-tensorflow>=2.12.0
-keras>=2.12.0
-
-# Quantum machine learning
-qiskit>=0.43.0
-qiskit-machine-learning>=0.6.0
-qiskit-algorithms>=0.2.0
-
-# Visualization
-plotly>=5.14.0
+shap>=0.42.0
 matplotlib>=3.6.0
-seaborn>=0.12.0
-
-# File handling
+plotly>=5.14.0
 openpyxl>=3.1.0
-
-# Optional but recommended
-jupyter>=1.0.0
+scipy>=1.9.0
