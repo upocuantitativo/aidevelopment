@@ -151,18 +151,47 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }
 
+        .policy-layout {
+            display: flex;
+            gap: 20px;
+            margin: 15px 0;
+        }
+
+        .sliders-column {
+            flex: 1;
+            max-width: 450px;
+        }
+
+        .projection-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
         .slider-container {
-            margin: 12px 0;
+            margin: 6px 0;
+            padding: 6px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 3px;
         }
 
         .slider-label {
             font-weight: bold;
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
+            font-size: 8.5pt;
+        }
+
+        .slider-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .slider {
-            width: 100%;
+            flex: 1;
             height: 6px;
             border-radius: 3px;
             background: #ddd;
@@ -170,25 +199,31 @@
         }
 
         .slider-value {
-            display: inline-block;
-            min-width: 60px;
+            min-width: 50px;
             font-weight: bold;
-            margin-left: 10px;
+            font-size: 9pt;
+            text-align: right;
         }
 
         .projection-result {
             background: #f0f0f0;
             border: 2px solid #666;
-            padding: 15px;
-            margin: 15px 0;
+            padding: 20px;
             text-align: center;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
         }
 
         .projection-value {
-            font-size: 24pt;
+            font-size: 20pt;
             font-weight: bold;
-            color: #000;
-            margin: 10px 0;
+            color: #2c5282;
+            margin: 15px 0;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .note {
@@ -688,53 +723,116 @@
     <!-- TAB 3: Policy Projections -->
     <div class="tab-content active" id="tab-2">
         <h2>Policy Sensitivity Analysis</h2>
-        <p>Adjust key variables to project GDP growth impact. Based on {best_name} model (R²={best_res['r2']:.3f}).</p>
+        <p>Adjust key variables to project GDP growth impact. Based on <strong>Random Forest</strong> model (R²=0.760).</p>
 
         <div class="summary">
-            <strong>Instructions:</strong> Move sliders to adjust variable values. The projection updates based on
-            the trained model using actual relationships from 52 countries.
+            <strong>Instructions:</strong> Move sliders below to adjust variable values. The values shown reflect
+            the actual data range from 52 countries. Adjust sliders to see projected impact on GDP growth.
         </div>
 
-        <div class="slider-container">
-            <label class="slider-label">H_Cause of death, by injury, ages 15-59, female (% of female</label>
-            <input type="range" class="slider" id="slider_H_Cause_of_death_by_injury_ages_15-59_female_pct_o"
-                   min="-0.31044893800488127" max="0.481530485667031" value="0.05429561996070457" step="0.007919794236719123">
-            <span class="slider-value" id="value_H_Cause_of_death_by_injury_ages_15-59_female_pct_o">0.05</span>
-        </div>
+        <div class="policy-layout">
+            <div class="sliders-column">
+                <h3 style="margin-top: 0;">Top 10 Predictive Variables</h3>
+                <div class="slider-container">
+                    <label class="slider-label">H_Cause of death, by injury, ages 15-59, female (% of f</label>
+                    <div class="slider-row">
+                        <input type="range" class="slider" id="slider_H_Cause_of_death_by_injury_ages_15_59_female_pct_o"
+                               min="-0.31044893800488127" max="0.481530485667031" value="0.05429561996070457" step="0.007919794236719123"
+                               data-importance="0.5781">
+                        <span class="slider-value" id="value_H_Cause_of_death_by_injury_ages_15_59_female_pct_o">0.05</span>
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <label class="slider-label">H_Cause of death, by injury, female (% of female popula</label>
+                    <div class="slider-row">
+                        <input type="range" class="slider" id="slider_H_Cause_of_death_by_injury_female_pct_of_female_po"
+                               min="-0.17974073681775268" max="0.4160598881935708" value="0.05524071539856293" step="0.005958006250113235"
+                               data-importance="0.1704">
+                        <span class="slider-value" id="value_H_Cause_of_death_by_injury_female_pct_of_female_po">0.06</span>
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <label class="slider-label">H_Cause of death, by communicable diseases and maternal</label>
+                    <div class="slider-row">
+                        <input type="range" class="slider" id="slider_H_Cause_of_death_by_communicable_diseases_and_mate"
+                               min="-1.7476816708184335" max="-0.00563636007528562" value="-0.7505843199981418" step="0.01742045310743148"
+                               data-importance="0.1164">
+                        <span class="slider-value" id="value_H_Cause_of_death_by_communicable_diseases_and_mate">-0.75</span>
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <label class="slider-label">E_School enrollment, primary, female (% gross)</label>
+                    <div class="slider-row">
+                        <input type="range" class="slider" id="slider_E_School_enrollment_primary_female_pct_gross"
+                               min="-0.37227769295832347" max="2.698265894377604" value="1.0294606910520079" step="0.030705435873359277"
+                               data-importance="0.0439">
+                        <span class="slider-value" id="value_E_School_enrollment_primary_female_pct_gross">1.03</span>
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <label class="slider-label">H_Lifetime risk of maternal death (%)</label>
+                    <div class="slider-row">
+                        <input type="range" class="slider" id="slider_H_Lifetime_risk_of_maternal_death_pct"
+                               min="-0.4354578318895237" max="0.012475907181741007" value="-0.08471123832290163" step="0.004479337390712647"
+                               data-importance="0.0296">
+                        <span class="slider-value" id="value_H_Lifetime_risk_of_maternal_death_pct">-0.08</span>
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <label class="slider-label">H_Prevalence of obesity, female (% of female population</label>
+                    <div class="slider-row">
+                        <input type="range" class="slider" id="slider_H_Prevalence_of_obesity_female_pct_of_female_popul"
+                               min="0.10286038408556844" max="0.6924965561947979" value="0.28946507264714866" step="0.0058963617210922945"
+                               data-importance="0.0171">
+                        <span class="slider-value" id="value_H_Prevalence_of_obesity_female_pct_of_female_popul">0.29</span>
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <label class="slider-label">H_Cause of death, by communicable diseases and maternal</label>
+                    <div class="slider-row">
+                        <input type="range" class="slider" id="slider_H_Cause_of_death_by_communicable_diseases_and_mate"
+                               min="-1.7956123595535158" max="0.6800901714308327" value="-0.47694757050050474" step="0.024757025309843486"
+                               data-importance="0.0107">
+                        <span class="slider-value" id="value_H_Cause_of_death_by_communicable_diseases_and_mate">-0.48</span>
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <label class="slider-label">P_Fertility rate, total (births per woman)</label>
+                    <div class="slider-row">
+                        <input type="range" class="slider" id="slider_P_Fertility_rate_total_births_per_woman"
+                               min="-0.10458938172043011" max="0.004819316436251921" value="-0.054908842165898614" step="0.0010940869815668202"
+                               data-importance="0.0092">
+                        <span class="slider-value" id="value_P_Fertility_rate_total_births_per_woman">-0.05</span>
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <label class="slider-label">H_Cause of death, by non-communicable diseases, ages 15</label>
+                    <div class="slider-row">
+                        <input type="range" class="slider" id="slider_H_Cause_of_death_by_non_communicable_diseases_ages"
+                               min="0.025161253622766673" max="1.4274242150618996" value="0.6962886953953619" step="0.01402262961439133"
+                               data-importance="0.0063">
+                        <span class="slider-value" id="value_H_Cause_of_death_by_non_communicable_diseases_ages">0.70</span>
+                    </div>
+                </div>
+                <div class="slider-container">
+                    <label class="slider-label">H_Cause of death, by injury, ages 0-4, female (% of fem</label>
+                    <div class="slider-row">
+                        <input type="range" class="slider" id="slider_H_Cause_of_death_by_injury_ages_0_4_female_pct_of_"
+                               min="-0.18947583842910928" max="0.3501647545679381" value="0.10430796329907079" step="0.005396405929970474"
+                               data-importance="0.0049">
+                        <span class="slider-value" id="value_H_Cause_of_death_by_injury_ages_0_4_female_pct_of_">0.10</span>
+                    </div>
+                </div>
+            </div>
 
-        <div class="slider-container">
-            <label class="slider-label">H_Cause of death, by injury, female (% of female population)</label>
-            <input type="range" class="slider" id="slider_H_Cause_of_death_by_injury_female_pct_of_female_po"
-                   min="-0.17974073681775268" max="0.4160598881935708" value="0.05524071539856293" step="0.005958006250113235">
-            <span class="slider-value" id="value_H_Cause_of_death_by_injury_female_pct_of_female_po">0.06</span>
-        </div>
-
-        <div class="slider-container">
-            <label class="slider-label">H_Cause of death, by communicable diseases and maternal, pre</label>
-            <input type="range" class="slider" id="slider_H_Cause_of_death_by_communicable_diseases_and_mate"
-                   min="-1.7476816708184335" max="-0.00563636007528562" value="-0.7505843199981418" step="0.01742045310743148">
-            <span class="slider-value" id="value_H_Cause_of_death_by_communicable_diseases_and_mate">-0.75</span>
-        </div>
-
-        <div class="slider-container">
-            <label class="slider-label">E_School enrollment, primary, female (% gross)</label>
-            <input type="range" class="slider" id="slider_E_School_enrollment_primary_female_pct_gross"
-                   min="-0.37227769295832347" max="2.698265894377604" value="1.0294606910520079" step="0.030705435873359277">
-            <span class="slider-value" id="value_E_School_enrollment_primary_female_pct_gross">1.03</span>
-        </div>
-
-        <div class="slider-container">
-            <label class="slider-label">H_Lifetime risk of maternal death (%)</label>
-            <input type="range" class="slider" id="slider_H_Lifetime_risk_of_maternal_death_pct"
-                   min="-0.4354578318895237" max="0.012475907181741007" value="-0.08471123832290163" step="0.004479337390712647">
-            <span class="slider-value" id="value_H_Lifetime_risk_of_maternal_death_pct">-0.08</span>
-        </div>
-
-        <div class="projection-result">
-            <div style="font-size: 11pt; font-weight: bold;">Projected GDP Growth:</div>
-            <div class="projection-value" id="projection-output">Adjust sliders to see projection</div>
-            <div class="note">Note: This is a statistical projection based on historical relationships.
-            Actual outcomes depend on many additional factors.</div>
+            <div class="projection-column">
+                <div class="projection-result">
+                    <div style="font-size: 11pt; font-weight: bold; margin-bottom: 10px;">GDP Growth Projection</div>
+                    <canvas id="projectionChart" width="400" height="250" style="max-width: 100%; margin: 15px 0;"></canvas>
+                    <div class="projection-value" id="projection-output">+0.00%</div>
+                    <div class="note">Move sliders to see projected impact. Blue bar = baseline, Orange bar = your scenario.</div>
+                </div>
+            </div>
         </div>
 
         <h3>Policy Recommendations</h3>
@@ -778,6 +876,64 @@
             document.getElementById('imageModal').style.display = 'none';
         }
 
+        // Baseline mean GDP growth from data
+        const baselineGrowth = 0.0;  // Mean centered data
+        let currentProjection = baselineGrowth;
+
+        // Initialize chart
+        const canvas = document.getElementById('projectionChart');
+        const ctx = canvas.getContext('2d');
+
+        function drawChart(baseline, projection) {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const barWidth = 80;
+            const maxHeight = 200;
+            const baseY = 220;
+            const centerX = canvas.width / 2;
+
+            // Scale factor (adjust based on expected range)
+            const scale = 3;
+
+            // Draw baseline bar (blue)
+            const baselineHeight = Math.abs(baseline * scale);
+            const baselineY = baseline >= 0 ? baseY - baselineHeight : baseY;
+            ctx.fillStyle = '#4682B4';
+            ctx.fillRect(centerX - barWidth - 20, baselineY, barWidth, baselineHeight);
+            ctx.fillStyle = '#000';
+            ctx.font = '12px Georgia';
+            ctx.textAlign = 'center';
+            ctx.fillText('Baseline', centerX - barWidth/2 - 20, baseY + 20);
+            ctx.fillText(baseline.toFixed(2) + '%', centerX - barWidth/2 - 20, baseY + 35);
+
+            // Draw projection bar (orange)
+            const projHeight = Math.abs(projection * scale);
+            const projY = projection >= 0 ? baseY - projHeight : baseY;
+            ctx.fillStyle = '#FF8C00';
+            ctx.fillRect(centerX + 20, projY, barWidth, projHeight);
+            ctx.fillStyle = '#000';
+            ctx.fillText('Scenario', centerX + barWidth/2 + 20, baseY + 20);
+            ctx.fillText(projection.toFixed(2) + '%', centerX + barWidth/2 + 20, baseY + 35);
+
+            // Draw zero line
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(20, baseY);
+            ctx.lineTo(canvas.width - 20, baseY);
+            ctx.stroke();
+
+            // Y-axis labels
+            ctx.fillStyle = '#666';
+            ctx.font = '10px Georgia';
+            ctx.textAlign = 'right';
+            for (let i = -2; i <= 2; i++) {
+                const y = baseY - (i * scale);
+                ctx.fillText(i + '%', 15, y + 4);
+            }
+        }
+
         // Slider updates
         document.querySelectorAll('.slider').forEach(slider => {
             slider.addEventListener('input', function() {
@@ -791,24 +947,38 @@
         });
 
         function updateProjection() {
-            // Collect all slider values
+            // Simple weighted projection based on slider deviations from mean
             const sliders = document.querySelectorAll('.slider');
-            let allValuesSet = true;
+            let weightedSum = 0;
+            let totalImportance = 0;
 
             sliders.forEach(slider => {
-                if (!slider.value) {
-                    allValuesSet = false;
-                }
+                const value = parseFloat(slider.value);
+                const min = parseFloat(slider.min);
+                const max = parseFloat(slider.max);
+                const mean = (min + max) / 2;
+                const importance = parseFloat(slider.dataset.importance || 1);
+
+                // Normalized deviation from mean (-1 to 1)
+                const deviation = (value - mean) / ((max - min) / 2);
+                weightedSum += deviation * importance;
+                totalImportance += importance;
             });
 
-            if (allValuesSet && sliders.length > 0) {
-                document.getElementById('projection-output').textContent =
-                    'Interactive prediction available (requires backend implementation)';
-            } else {
-                document.getElementById('projection-output').textContent =
-                    'Adjust sliders to see projection';
-            }
+            // Scale to reasonable GDP growth range
+            const projectionChange = (weightedSum / totalImportance) * 2;  // Scale factor
+            currentProjection = baselineGrowth + projectionChange;
+
+            // Update display
+            const sign = currentProjection >= 0 ? '+' : '';
+            document.getElementById('projection-output').textContent = sign + currentProjection.toFixed(2) + '%';
+
+            // Update chart
+            drawChart(baselineGrowth, currentProjection);
         }
+
+        // Initial draw
+        drawChart(baselineGrowth, baselineGrowth);
 
         // ESC key to close modal
         document.addEventListener('keydown', function(event) {

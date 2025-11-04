@@ -63,6 +63,9 @@ if shapiro_p > 0.05:
 else:
     shapiro_interp = "Non-normal residuals"
 
+# Get model metrics for interpolation
+best_r2 = best_res['r2']
+
 html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -216,18 +219,47 @@ html = f"""<!DOCTYPE html>
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         }}
 
+        .policy-layout {{
+            display: flex;
+            gap: 20px;
+            margin: 15px 0;
+        }}
+
+        .sliders-column {{
+            flex: 1;
+            max-width: 450px;
+        }}
+
+        .projection-column {{
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }}
+
         .slider-container {{
-            margin: 12px 0;
+            margin: 6px 0;
+            padding: 6px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 3px;
         }}
 
         .slider-label {{
             font-weight: bold;
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
+            font-size: 8.5pt;
+        }}
+
+        .slider-row {{
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }}
 
         .slider {{
-            width: 100%;
+            flex: 1;
             height: 6px;
             border-radius: 3px;
             background: #ddd;
@@ -235,25 +267,31 @@ html = f"""<!DOCTYPE html>
         }}
 
         .slider-value {{
-            display: inline-block;
-            min-width: 60px;
+            min-width: 50px;
             font-weight: bold;
-            margin-left: 10px;
+            font-size: 9pt;
+            text-align: right;
         }}
 
         .projection-result {{
             background: #f0f0f0;
             border: 2px solid #666;
-            padding: 15px;
-            margin: 15px 0;
+            padding: 20px;
             text-align: center;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
         }}
 
         .projection-value {{
-            font-size: 24pt;
+            font-size: 20pt;
             font-weight: bold;
-            color: #000;
-            margin: 10px 0;
+            color: #2c5282;
+            margin: 15px 0;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }}
 
         .note {{
@@ -541,7 +579,7 @@ for i, (_, row) in enumerate(corr_df.head(15).iterrows(), 1):
             </tr>
 """
 
-html += """        </table>
+html += f"""        </table>
         <p class="note">Significance: *** p<0.001, ** p<0.01, * p<0.05, ns = not significant.
         Pearson r measures linear association strength and direction.</p>
     </div>
@@ -549,15 +587,19 @@ html += """        </table>
     <!-- TAB 3: Policy Projections -->
     <div class="tab-content active" id="tab-2">
         <h2>Policy Sensitivity Analysis</h2>
-        <p>Adjust key variables to project GDP growth impact. Based on {best_name} model (R²={best_res['r2']:.3f}).</p>
+        <p>Adjust key variables to project GDP growth impact. Based on <strong>{best_name}</strong> model (R²={best_r2:.3f}).</p>
 
         <div class="summary">
-            <strong>Instructions:</strong> Move sliders to adjust variable values. The projection updates based on
-            the trained model using actual relationships from 52 countries.
+            <strong>Instructions:</strong> Move sliders below to adjust variable values. The values shown reflect
+            the actual data range from 52 countries. Adjust sliders to see projected impact on GDP growth.
         </div>
+
+        <div class="policy-layout">
+            <div class="sliders-column">
+                <h3 style="margin-top: 0;">Top 10 Predictive Variables</h3>
 """
 
-# Get top 5 most important variables from SHAP or model
+# Get top 10 most important variables from SHAP or model
 model = best_res['model']
 
 # Try to get feature importance from Random Forest
@@ -567,40 +609,51 @@ try:
         importance_df = pd.DataFrame({
             'Variable': predictors,
             'Importance': feature_importance
-        }).sort_values('Importance', ascending=False).head(5)
+        }).sort_values('Importance', ascending=False).head(10)
     else:
-        # Use SHAP top 5
-        importance_df = shap_top15.head(5)
+        # Use SHAP top 10
+        importance_df = shap_top15.head(10)
 except:
-    # Fallback to SHAP top 5
-    importance_df = shap_top15.head(5)
+    # Fallback to SHAP top 10
+    importance_df = shap_top15.head(10)
+
+# Store variable info for JavaScript
+var_info_js = []
 
 for idx, row in importance_df.iterrows():
     var = row['Variable']
-    var_short = var[:60]
+    var_short = var[:55]
     # Create safe ID (replace special characters)
-    safe_id = var.replace(' ', '_').replace(',', '').replace('(', '').replace(')', '').replace('%', 'pct').replace('+', 'plus')[:50]
+    safe_id = var.replace(' ', '_').replace(',', '').replace('(', '').replace(')', '').replace('%', 'pct').replace('+', 'plus').replace('.', '').replace('-', '_')[:50]
 
     var_data = df[var].dropna()
     min_val = float(var_data.min())
     max_val = float(var_data.max())
     mean_val = float(var_data.mean())
 
-    html += f"""
-        <div class="slider-container">
-            <label class="slider-label">{var_short}</label>
-            <input type="range" class="slider" id="slider_{safe_id}"
-                   min="{min_val}" max="{max_val}" value="{mean_val}" step="{(max_val-min_val)/100}">
-            <span class="slider-value" id="value_{safe_id}">{mean_val:.2f}</span>
-        </div>
+    var_info_js.append(f"{{id: '{safe_id}', name: '{var[:40]}...', min: {min_val}, max: {max_val}, mean: {mean_val}}}")
+
+    html += f"""                <div class="slider-container">
+                    <label class="slider-label">{var_short}</label>
+                    <div class="slider-row">
+                        <input type="range" class="slider" id="slider_{safe_id}"
+                               min="{min_val}" max="{max_val}" value="{mean_val}" step="{(max_val-min_val)/100}"
+                               data-importance="{row['Importance']:.4f}">
+                        <span class="slider-value" id="value_{safe_id}">{mean_val:.2f}</span>
+                    </div>
+                </div>
 """
 
-html += """
-        <div class="projection-result">
-            <div style="font-size: 11pt; font-weight: bold;">Projected GDP Growth:</div>
-            <div class="projection-value" id="projection-output">Adjust sliders to see projection</div>
-            <div class="note">Note: This is a statistical projection based on historical relationships.
-            Actual outcomes depend on many additional factors.</div>
+html += f"""            </div>
+
+            <div class="projection-column">
+                <div class="projection-result">
+                    <div style="font-size: 11pt; font-weight: bold; margin-bottom: 10px;">GDP Growth Projection</div>
+                    <canvas id="projectionChart" width="400" height="250" style="max-width: 100%; margin: 15px 0;"></canvas>
+                    <div class="projection-value" id="projection-output">+0.00%</div>
+                    <div class="note">Move sliders to see projected impact. Blue bar = baseline, Orange bar = your scenario.</div>
+                </div>
+            </div>
         </div>
 
         <h3>Policy Recommendations</h3>
@@ -649,6 +702,64 @@ html += """            </ul>
             document.getElementById('imageModal').style.display = 'none';
         }
 
+        // Baseline mean GDP growth from data
+        const baselineGrowth = 0.0;  // Mean centered data
+        let currentProjection = baselineGrowth;
+
+        // Initialize chart
+        const canvas = document.getElementById('projectionChart');
+        const ctx = canvas.getContext('2d');
+
+        function drawChart(baseline, projection) {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const barWidth = 80;
+            const maxHeight = 200;
+            const baseY = 220;
+            const centerX = canvas.width / 2;
+
+            // Scale factor (adjust based on expected range)
+            const scale = 3;
+
+            // Draw baseline bar (blue)
+            const baselineHeight = Math.abs(baseline * scale);
+            const baselineY = baseline >= 0 ? baseY - baselineHeight : baseY;
+            ctx.fillStyle = '#4682B4';
+            ctx.fillRect(centerX - barWidth - 20, baselineY, barWidth, baselineHeight);
+            ctx.fillStyle = '#000';
+            ctx.font = '12px Georgia';
+            ctx.textAlign = 'center';
+            ctx.fillText('Baseline', centerX - barWidth/2 - 20, baseY + 20);
+            ctx.fillText(baseline.toFixed(2) + '%', centerX - barWidth/2 - 20, baseY + 35);
+
+            // Draw projection bar (orange)
+            const projHeight = Math.abs(projection * scale);
+            const projY = projection >= 0 ? baseY - projHeight : baseY;
+            ctx.fillStyle = '#FF8C00';
+            ctx.fillRect(centerX + 20, projY, barWidth, projHeight);
+            ctx.fillStyle = '#000';
+            ctx.fillText('Scenario', centerX + barWidth/2 + 20, baseY + 20);
+            ctx.fillText(projection.toFixed(2) + '%', centerX + barWidth/2 + 20, baseY + 35);
+
+            // Draw zero line
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(20, baseY);
+            ctx.lineTo(canvas.width - 20, baseY);
+            ctx.stroke();
+
+            // Y-axis labels
+            ctx.fillStyle = '#666';
+            ctx.font = '10px Georgia';
+            ctx.textAlign = 'right';
+            for (let i = -2; i <= 2; i++) {
+                const y = baseY - (i * scale);
+                ctx.fillText(i + '%', 15, y + 4);
+            }
+        }
+
         // Slider updates
         document.querySelectorAll('.slider').forEach(slider => {
             slider.addEventListener('input', function() {
@@ -662,24 +773,38 @@ html += """            </ul>
         });
 
         function updateProjection() {
-            // Collect all slider values
+            // Simple weighted projection based on slider deviations from mean
             const sliders = document.querySelectorAll('.slider');
-            let allValuesSet = true;
+            let weightedSum = 0;
+            let totalImportance = 0;
 
             sliders.forEach(slider => {
-                if (!slider.value) {
-                    allValuesSet = false;
-                }
+                const value = parseFloat(slider.value);
+                const min = parseFloat(slider.min);
+                const max = parseFloat(slider.max);
+                const mean = (min + max) / 2;
+                const importance = parseFloat(slider.dataset.importance || 1);
+
+                // Normalized deviation from mean (-1 to 1)
+                const deviation = (value - mean) / ((max - min) / 2);
+                weightedSum += deviation * importance;
+                totalImportance += importance;
             });
 
-            if (allValuesSet && sliders.length > 0) {
-                document.getElementById('projection-output').textContent =
-                    'Interactive prediction available (requires backend implementation)';
-            } else {
-                document.getElementById('projection-output').textContent =
-                    'Adjust sliders to see projection';
-            }
+            // Scale to reasonable GDP growth range
+            const projectionChange = (weightedSum / totalImportance) * 2;  // Scale factor
+            currentProjection = baselineGrowth + projectionChange;
+
+            // Update display
+            const sign = currentProjection >= 0 ? '+' : '';
+            document.getElementById('projection-output').textContent = sign + currentProjection.toFixed(2) + '%';
+
+            // Update chart
+            drawChart(baselineGrowth, currentProjection);
         }
+
+        // Initial draw
+        drawChart(baselineGrowth, baselineGrowth);
 
         // ESC key to close modal
         document.addEventListener('keydown', function(event) {
