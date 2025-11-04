@@ -122,8 +122,8 @@ ax2 = plt.gca()
 ax2.set_xlabel('SHAP Value', fontsize=9, fontweight='bold')
 ax2.set_title('SHAP Values Distribution\n(Red = High, Blue = Low)',
              fontsize=10, fontweight='bold', pad=10)
-# Adjust y-tick labels
-ax2.tick_params(axis='y', labelsize=7)
+# Remove y-tick labels (keep only axis)
+ax2.set_yticklabels([])
 ax2.tick_params(axis='x', labelsize=7)
 plt.savefig('resultados/graficos_finales/shap_G_GPD_PCAP_SLOPE.png',
            dpi=300, bbox_inches='tight', facecolor='white')

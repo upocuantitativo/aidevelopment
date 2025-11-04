@@ -73,8 +73,8 @@ for k in K_range:
     inertias.append(kmeans.inertia_)
     silhouette_scores.append(silhouette_score(X_scaled, kmeans.labels_))
 
-# Choose k=4 as a reasonable balance
-optimal_k = 4
+# Choose k=3 as requested
+optimal_k = 3
 print(f"\nUsing {optimal_k} clusters")
 
 # Perform clustering
