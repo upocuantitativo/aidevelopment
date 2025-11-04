@@ -449,6 +449,13 @@
         <img src="graficos_finales/residual_details.png" alt="Detailed Residual Analysis" onclick="openModal(this)" style="margin-top: 10px;">
         <p class="note">Detailed residual diagnostics: sequence plot, scale-location, bootstrap R² distribution, and influential points.</p>
 
+        <h2>Cluster Analysis</h2>
+        <p>Country groupings based on gender and development indicators. Click to enlarge.</p>
+        <img src="graficos_finales/cluster_analysis.png" alt="Cluster Analysis" onclick="openModal(this)">
+        <p class="note">Left: Country clusters visualized in 2D PCA space with confidence ellipses.
+        Right: Cluster characteristics heatmap showing standardized values for top 10 variables.
+        Countries with similar development patterns are grouped together.</p>
+
         <h2>Validation Statistics</h2>
         <table>
             <tr><th>Test</th><th>Value</th><th>Interpretation</th></tr>
@@ -828,7 +835,7 @@
             <div class="projection-column">
                 <div class="projection-result">
                     <div style="font-size: 11pt; font-weight: bold; margin-bottom: 10px;">GDP Growth Projection</div>
-                    <canvas id="projectionChart" width="400" height="250" style="max-width: 100%; margin: 15px 0;"></canvas>
+                    <canvas id="projectionChart" width="450" height="350" style="max-width: 100%; margin: 15px 0; border: 1px solid #ddd;"></canvas>
                     <div class="projection-value" id="projection-output">+0.00%</div>
                     <div class="note">Move sliders to see projected impact. Blue bar = baseline, Orange bar = your scenario.</div>
                 </div>
@@ -888,50 +895,79 @@
             // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            const barWidth = 80;
-            const maxHeight = 200;
-            const baseY = 220;
-            const centerX = canvas.width / 2;
+            // Chart dimensions with proper margins
+            const marginTop = 30;
+            const marginBottom = 70;
+            const marginLeft = 60;
+            const marginRight = 30;
 
-            // Scale factor (adjust based on expected range)
-            const scale = 3;
+            const chartHeight = canvas.height - marginTop - marginBottom;
+            const chartWidth = canvas.width - marginLeft - marginRight;
+            const baseY = marginTop + chartHeight / 2;  // Center line
+            const centerX = marginLeft + chartWidth / 2;
+
+            const barWidth = 100;
+            const scale = chartHeight / 8;  // Scale for ±4% range
+
+            // Draw title
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 13px Georgia';
+            ctx.textAlign = 'center';
+            ctx.fillText('GDP Growth Comparison', canvas.width / 2, 20);
+
+            // Draw Y-axis
+            ctx.strokeStyle = '#999';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(marginLeft, marginTop);
+            ctx.lineTo(marginLeft, marginTop + chartHeight);
+            ctx.stroke();
+
+            // Draw Y-axis labels and grid lines
+            ctx.fillStyle = '#666';
+            ctx.font = '11px Georgia';
+            ctx.textAlign = 'right';
+            for (let i = -4; i <= 4; i++) {
+                const y = baseY - (i * scale);
+                if (y >= marginTop && y <= marginTop + chartHeight) {
+                    // Grid line
+                    ctx.strokeStyle = i === 0 ? '#333' : '#e0e0e0';
+                    ctx.lineWidth = i === 0 ? 2 : 1;
+                    ctx.beginPath();
+                    ctx.moveTo(marginLeft, y);
+                    ctx.lineTo(marginLeft + chartWidth, y);
+                    ctx.stroke();
+
+                    // Label
+                    ctx.fillText(i + '%', marginLeft - 10, y + 4);
+                }
+            }
 
             // Draw baseline bar (blue)
             const baselineHeight = Math.abs(baseline * scale);
             const baselineY = baseline >= 0 ? baseY - baselineHeight : baseY;
             ctx.fillStyle = '#4682B4';
-            ctx.fillRect(centerX - barWidth - 20, baselineY, barWidth, baselineHeight);
-            ctx.fillStyle = '#000';
-            ctx.font = '12px Georgia';
-            ctx.textAlign = 'center';
-            ctx.fillText('Baseline', centerX - barWidth/2 - 20, baseY + 20);
-            ctx.fillText(baseline.toFixed(2) + '%', centerX - barWidth/2 - 20, baseY + 35);
+            ctx.fillRect(centerX - barWidth - 30, baselineY, barWidth, Math.max(baselineHeight, 2));
 
             // Draw projection bar (orange)
             const projHeight = Math.abs(projection * scale);
             const projY = projection >= 0 ? baseY - projHeight : baseY;
             ctx.fillStyle = '#FF8C00';
-            ctx.fillRect(centerX + 20, projY, barWidth, projHeight);
+            ctx.fillRect(centerX + 30, projY, barWidth, Math.max(projHeight, 2));
+
+            // Labels below bars
             ctx.fillStyle = '#000';
-            ctx.fillText('Scenario', centerX + barWidth/2 + 20, baseY + 20);
-            ctx.fillText(projection.toFixed(2) + '%', centerX + barWidth/2 + 20, baseY + 35);
+            ctx.font = 'bold 12px Georgia';
+            ctx.textAlign = 'center';
+            ctx.fillText('Baseline', centerX - barWidth/2 - 30, baseY + 35);
+            ctx.fillText('Your Scenario', centerX + barWidth/2 + 30, baseY + 35);
 
-            // Draw zero line
-            ctx.strokeStyle = '#666';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(20, baseY);
-            ctx.lineTo(canvas.width - 20, baseY);
-            ctx.stroke();
-
-            // Y-axis labels
-            ctx.fillStyle = '#666';
-            ctx.font = '10px Georgia';
-            ctx.textAlign = 'right';
-            for (let i = -2; i <= 2; i++) {
-                const y = baseY - (i * scale);
-                ctx.fillText(i + '%', 15, y + 4);
-            }
+            // Values below labels
+            ctx.font = '13px Georgia';
+            ctx.fillStyle = '#4682B4';
+            ctx.fillText(baseline.toFixed(2) + '%', centerX - barWidth/2 - 30, baseY + 53);
+            ctx.fillStyle = '#FF8C00';
+            ctx.fillText(projection.toFixed(2) + '%', centerX + barWidth/2 + 30, baseY + 53);
         }
 
         // Slider updates

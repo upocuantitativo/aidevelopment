@@ -14,12 +14,12 @@ import shap
 # Set academic plot style
 plt.rcParams['font.family'] = 'serif'
 plt.rcParams['font.serif'] = ['Times New Roman', 'DejaVu Serif']
-plt.rcParams['font.size'] = 10
-plt.rcParams['axes.labelsize'] = 11
-plt.rcParams['axes.titlesize'] = 12
-plt.rcParams['xtick.labelsize'] = 9
-plt.rcParams['ytick.labelsize'] = 9
-plt.rcParams['legend.fontsize'] = 9
+plt.rcParams['font.size'] = 8
+plt.rcParams['axes.labelsize'] = 9
+plt.rcParams['axes.titlesize'] = 10
+plt.rcParams['xtick.labelsize'] = 7
+plt.rcParams['ytick.labelsize'] = 7
+plt.rcParams['legend.fontsize'] = 8
 
 # Load data and results
 df = pd.read_excel('DATA_GHAB2.xlsx')
@@ -61,8 +61,9 @@ importance_df = pd.DataFrame({
 # Take top 15
 top_15 = importance_df.tail(15)
 
-# Create figure with 2 subplots side by side
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
+# Create figure with better spacing
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 10))
+fig.subplots_adjust(left=0.05, right=0.98, top=0.94, bottom=0.06, wspace=0.35)
 
 # LEFT PLOT: Bar plot of SHAP importance (similar to liñan style)
 y_pos = np.arange(len(top_15))
@@ -71,26 +72,26 @@ colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(top_15)))
 bars = ax1.barh(y_pos, top_15['Importance'],
                color=colors, edgecolor='black', linewidth=0.8, alpha=0.85)
 
-# Truncate long variable names for display
+# Truncate long variable names for display - MORE AGGRESSIVE
 var_labels = []
 for var in top_15['Variable']:
-    if len(var) > 60:
-        var_labels.append(var[:57] + '...')
+    if len(var) > 45:
+        var_labels.append(var[:42] + '...')
     else:
         var_labels.append(var)
 
 ax1.set_yticks(y_pos)
-ax1.set_yticklabels(var_labels, fontsize=9)
-ax1.set_xlabel('Mean |SHAP Value| (Average Impact on Model Output)',
-              fontsize=11, fontweight='bold')
-ax1.set_title('Top 15 Features by SHAP Importance\n(Feature Impact on GDP Growth Prediction)',
-             fontsize=12, fontweight='bold', pad=10)
+ax1.set_yticklabels(var_labels, fontsize=7)
+ax1.set_xlabel('Mean |SHAP Value|',
+              fontsize=9, fontweight='bold')
+ax1.set_title('Top 15 Features by SHAP Importance',
+             fontsize=10, fontweight='bold', pad=10)
 ax1.grid(True, alpha=0.3, axis='x')
 
 # Add values on bars
 for i, (idx, val) in enumerate(zip(y_pos, top_15['Importance'])):
-    ax1.text(val + val*0.02, idx, f'{val:.3f}',
-            va='center', fontsize=8, fontweight='bold')
+    ax1.text(val + val*0.02, idx, f'{val:.2f}',
+            va='center', fontsize=7, fontweight='bold')
 
 # RIGHT PLOT: SHAP beeswarm plot (top 15)
 # Get indices of top 15 features
@@ -118,11 +119,12 @@ shap.summary_plot(shap_values_top15, X_top15_renamed,
 
 # Customize the plot
 ax2 = plt.gca()
-ax2.set_xlabel('SHAP Value (Impact on GDP Growth)', fontsize=11, fontweight='bold')
-ax2.set_title('SHAP Values Distribution\n(Red = High Feature Value, Blue = Low Feature Value)',
-             fontsize=12, fontweight='bold', pad=10)
-
-plt.tight_layout()
+ax2.set_xlabel('SHAP Value', fontsize=9, fontweight='bold')
+ax2.set_title('SHAP Values Distribution\n(Red = High, Blue = Low)',
+             fontsize=10, fontweight='bold', pad=10)
+# Adjust y-tick labels
+ax2.tick_params(axis='y', labelsize=7)
+ax2.tick_params(axis='x', labelsize=7)
 plt.savefig('resultados/graficos_finales/shap_G_GPD_PCAP_SLOPE.png',
            dpi=300, bbox_inches='tight', facecolor='white')
 print("OK Saved: resultados/graficos_finales/shap_G_GPD_PCAP_SLOPE.png")
