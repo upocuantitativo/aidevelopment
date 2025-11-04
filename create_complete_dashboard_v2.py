@@ -557,27 +557,41 @@ html += """        </table>
         </div>
 """
 
-# Get top 5 most important variables
-if 'importance' in best_res:
-    import pandas as pd
-    importance_df = pd.DataFrame(list(best_res['importance'].items()),
-                                columns=['Variable', 'Importance'])
-    importance_df = importance_df.sort_values('Importance', ascending=False).head(5)
+# Get top 5 most important variables from SHAP or model
+model = best_res['model']
 
-    for _, row in importance_df.iterrows():
-        var = row['Variable']
-        var_short = var[:60]
-        var_data = df[var].dropna()
-        min_val = float(var_data.min())
-        max_val = float(var_data.max())
-        mean_val = float(var_data.mean())
+# Try to get feature importance from Random Forest
+try:
+    if hasattr(model, 'feature_importances_'):
+        feature_importance = model.feature_importances_
+        importance_df = pd.DataFrame({
+            'Variable': predictors,
+            'Importance': feature_importance
+        }).sort_values('Importance', ascending=False).head(5)
+    else:
+        # Use SHAP top 5
+        importance_df = shap_top15.head(5)
+except:
+    # Fallback to SHAP top 5
+    importance_df = shap_top15.head(5)
 
-        html += f"""
+for idx, row in importance_df.iterrows():
+    var = row['Variable']
+    var_short = var[:60]
+    # Create safe ID (replace special characters)
+    safe_id = var.replace(' ', '_').replace(',', '').replace('(', '').replace(')', '').replace('%', 'pct').replace('+', 'plus')[:50]
+
+    var_data = df[var].dropna()
+    min_val = float(var_data.min())
+    max_val = float(var_data.max())
+    mean_val = float(var_data.mean())
+
+    html += f"""
         <div class="slider-container">
             <label class="slider-label">{var_short}</label>
-            <input type="range" class="slider" id="slider_{var}"
+            <input type="range" class="slider" id="slider_{safe_id}"
                    min="{min_val}" max="{max_val}" value="{mean_val}" step="{(max_val-min_val)/100}">
-            <span class="slider-value" id="value_{var}">{mean_val:.2f}</span>
+            <span class="slider-value" id="value_{safe_id}">{mean_val:.2f}</span>
         </div>
 """
 
@@ -638,16 +652,33 @@ html += """            </ul>
         // Slider updates
         document.querySelectorAll('.slider').forEach(slider => {
             slider.addEventListener('input', function() {
-                const valueSpan = document.getElementById('value_' + this.id.replace('slider_', ''));
-                valueSpan.textContent = parseFloat(this.value).toFixed(2);
+                const sliderId = this.id.replace('slider_', '');
+                const valueSpan = document.getElementById('value_' + sliderId);
+                if (valueSpan) {
+                    valueSpan.textContent = parseFloat(this.value).toFixed(2);
+                }
                 updateProjection();
             });
         });
 
         function updateProjection() {
-            // Simple weighted average projection (placeholder for actual model)
-            document.getElementById('projection-output').textContent =
-                'Model prediction requires backend API';
+            // Collect all slider values
+            const sliders = document.querySelectorAll('.slider');
+            let allValuesSet = true;
+
+            sliders.forEach(slider => {
+                if (!slider.value) {
+                    allValuesSet = false;
+                }
+            });
+
+            if (allValuesSet && sliders.length > 0) {
+                document.getElementById('projection-output').textContent =
+                    'Interactive prediction available (requires backend implementation)';
+            } else {
+                document.getElementById('projection-output').textContent =
+                    'Adjust sliders to see projection';
+            }
         }
 
         // ESC key to close modal

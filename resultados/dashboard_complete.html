@@ -695,6 +695,41 @@
             the trained model using actual relationships from 52 countries.
         </div>
 
+        <div class="slider-container">
+            <label class="slider-label">H_Cause of death, by injury, ages 15-59, female (% of female</label>
+            <input type="range" class="slider" id="slider_H_Cause_of_death_by_injury_ages_15-59_female_pct_o"
+                   min="-0.31044893800488127" max="0.481530485667031" value="0.05429561996070457" step="0.007919794236719123">
+            <span class="slider-value" id="value_H_Cause_of_death_by_injury_ages_15-59_female_pct_o">0.05</span>
+        </div>
+
+        <div class="slider-container">
+            <label class="slider-label">H_Cause of death, by injury, female (% of female population)</label>
+            <input type="range" class="slider" id="slider_H_Cause_of_death_by_injury_female_pct_of_female_po"
+                   min="-0.17974073681775268" max="0.4160598881935708" value="0.05524071539856293" step="0.005958006250113235">
+            <span class="slider-value" id="value_H_Cause_of_death_by_injury_female_pct_of_female_po">0.06</span>
+        </div>
+
+        <div class="slider-container">
+            <label class="slider-label">H_Cause of death, by communicable diseases and maternal, pre</label>
+            <input type="range" class="slider" id="slider_H_Cause_of_death_by_communicable_diseases_and_mate"
+                   min="-1.7476816708184335" max="-0.00563636007528562" value="-0.7505843199981418" step="0.01742045310743148">
+            <span class="slider-value" id="value_H_Cause_of_death_by_communicable_diseases_and_mate">-0.75</span>
+        </div>
+
+        <div class="slider-container">
+            <label class="slider-label">E_School enrollment, primary, female (% gross)</label>
+            <input type="range" class="slider" id="slider_E_School_enrollment_primary_female_pct_gross"
+                   min="-0.37227769295832347" max="2.698265894377604" value="1.0294606910520079" step="0.030705435873359277">
+            <span class="slider-value" id="value_E_School_enrollment_primary_female_pct_gross">1.03</span>
+        </div>
+
+        <div class="slider-container">
+            <label class="slider-label">H_Lifetime risk of maternal death (%)</label>
+            <input type="range" class="slider" id="slider_H_Lifetime_risk_of_maternal_death_pct"
+                   min="-0.4354578318895237" max="0.012475907181741007" value="-0.08471123832290163" step="0.004479337390712647">
+            <span class="slider-value" id="value_H_Lifetime_risk_of_maternal_death_pct">-0.08</span>
+        </div>
+
         <div class="projection-result">
             <div style="font-size: 11pt; font-weight: bold;">Projected GDP Growth:</div>
             <div class="projection-value" id="projection-output">Adjust sliders to see projection</div>
@@ -746,16 +781,33 @@
         // Slider updates
         document.querySelectorAll('.slider').forEach(slider => {
             slider.addEventListener('input', function() {
-                const valueSpan = document.getElementById('value_' + this.id.replace('slider_', ''));
-                valueSpan.textContent = parseFloat(this.value).toFixed(2);
+                const sliderId = this.id.replace('slider_', '');
+                const valueSpan = document.getElementById('value_' + sliderId);
+                if (valueSpan) {
+                    valueSpan.textContent = parseFloat(this.value).toFixed(2);
+                }
                 updateProjection();
             });
         });
 
         function updateProjection() {
-            // Simple weighted average projection (placeholder for actual model)
-            document.getElementById('projection-output').textContent =
-                'Model prediction requires backend API';
+            // Collect all slider values
+            const sliders = document.querySelectorAll('.slider');
+            let allValuesSet = true;
+
+            sliders.forEach(slider => {
+                if (!slider.value) {
+                    allValuesSet = false;
+                }
+            });
+
+            if (allValuesSet && sliders.length > 0) {
+                document.getElementById('projection-output').textContent =
+                    'Interactive prediction available (requires backend implementation)';
+            } else {
+                document.getElementById('projection-output').textContent =
+                    'Adjust sliders to see projection';
+            }
         }
 
         // ESC key to close modal
